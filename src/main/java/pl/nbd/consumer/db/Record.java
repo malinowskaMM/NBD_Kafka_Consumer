@@ -16,13 +16,40 @@ public class Record  implements Serializable {
     @BsonId
     UUID id;
 
-    @BsonProperty("record")
-    String record;
+    @BsonProperty("topic")
+    String topic;
+
+    @BsonProperty("partition")
+    int partition;
+
+    @BsonProperty("offset")
+    long offset;
+
+    @BsonProperty("key")
+    String key;
+
+    @BsonProperty("value")
+    String value;
+
+    @BsonProperty("consumer")
+    String consumer;
+
 
 
     @BsonCreator
-    public Record(@BsonId UUID id, @BsonProperty("record") String record) {
+    public Record(@BsonId UUID id,
+                  @BsonProperty("topic")String topic,
+                  @BsonProperty("partition")int partition,
+                  @BsonProperty("offset")long offset,
+                  @BsonProperty("key")String key,
+                  @BsonProperty("value")String value,
+                  @BsonProperty("consumer")String consumer) {
         this.id = id;
-        this.record = record;
+        this.topic = topic;
+        this.partition = partition;
+        this.offset = offset;
+        this.key = key;
+        this.value = value;
+        this.consumer = consumer;
     }
 }

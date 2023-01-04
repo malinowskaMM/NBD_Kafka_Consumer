@@ -50,6 +50,7 @@ public class Consumer extends AbstractMongoRepository {
 
         super.initDbConnection();
         recordCollection = mongoDatabase.getCollection("consumerRecords", Record.class);
+        recordCollection.drop();
         kafkaConsumer = new KafkaConsumer<UUID, String>(consumerConfig);
         kafkaConsumer.subscribe(List.of(Topics.CLIENT_TOPIC));
     }
@@ -109,7 +110,13 @@ public class Consumer extends AbstractMongoRepository {
                             consumer.groupMetadata().memberId()
                     });
                     System.out.println(result);
-                    Record recordMongo = new Record(UUID.randomUUID(), result);
+                    Record recordMongo = new Record(UUID.randomUUID(),
+                            record.topic(),
+                            record.partition(),
+                            record.offset(),
+                            record.key().toString(),
+                            record.value(),
+                            consumer.groupMetadata().toString());
                     recordCollection.insertOne(recordMongo);
                 }
             }
