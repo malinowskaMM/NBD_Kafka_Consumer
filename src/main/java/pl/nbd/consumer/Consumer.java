@@ -32,11 +32,11 @@ public class Consumer extends AbstractMongoRepository {
 
     private static KafkaConsumer<UUID, String> kafkaConsumer;
 
-    public static List<KafkaConsumer<UUID, String>> getConsumerGroup() {
+    public List<KafkaConsumer<UUID, String>> getConsumerGroup() {
         return consumerGroup;
     }
 
-    private static List<KafkaConsumer<UUID, String>> consumerGroup;
+    private List<KafkaConsumer<UUID, String>> consumerGroup;
 
     private static MongoCollection<Record> recordCollection;
 
@@ -55,15 +55,19 @@ public class Consumer extends AbstractMongoRepository {
         kafkaConsumer.subscribe(List.of(Topics.CLIENT_TOPIC));
     }
 
-    public static void initConsumerGroup() {
+    public void initConsumerGroup() {
         consumerGroup = new ArrayList<>();
 
         Properties consumerConfig = new Properties();
         consumerConfig.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, UUIDDeserializer.class.getName());
         consumerConfig.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumerConfig.put(ConsumerConfig.GROUP_ID_CONFIG, Topics.CONSUMER_GROUP_NAME);//dynamiczny przydział
-        consumerConfig.put(ConsumerConfig.GROUP_INSTANCE_ID_CONFIG, "clientconsumer");//statyczny przydział
+        //consumerConfig.put(ConsumerConfig.GROUP_INSTANCE_ID_CONFIG, "clientconsumer");//statyczny przydział
         consumerConfig.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka1:9192,kafka2:9292,kafka3:9392");
+
+        super.initDbConnection();
+        recordCollection = mongoDatabase.getCollection("consumerRecords", Record.class);
+        recordCollection.drop();
 
         for (int i = 0; i < 2; i++) {
             KafkaConsumer<UUID, String> kafkaConsumer = new KafkaConsumer(consumerConfig);

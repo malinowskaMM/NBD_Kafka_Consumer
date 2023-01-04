@@ -1,0 +1,4 @@
+//Wykazać przydział konsumentów do partycji tematu
+kafka-consumer-groups.sh --bootstrap-server kafka1:19192 --describe --group clientconsumer
+
+kafka-topics.sh --delete --topic rent --bootstrap-server kafka1:19192
