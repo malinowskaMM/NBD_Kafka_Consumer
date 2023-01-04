@@ -1,5 +1,6 @@
 package pl.nbd.consumer;
 
+import com.mongodb.client.MongoCollection;
 import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.ConsumerGroupDescription;
@@ -13,6 +14,8 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.UUIDDeserializer;
+import pl.nbd.consumer.db.AbstractMongoRepository;
+import pl.nbd.consumer.db.Record;
 
 import java.text.MessageFormat;
 import java.time.Duration;
@@ -21,7 +24,7 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-public class Consumer {
+public class Consumer extends AbstractMongoRepository {
 
     public static KafkaConsumer<UUID, String> getKafkaConsumer() {
         return kafkaConsumer;
@@ -35,7 +38,9 @@ public class Consumer {
 
     private static List<KafkaConsumer<UUID, String>> consumerGroup;
 
-    public static void initConsumer() {
+    private static MongoCollection<Record> recordCollection;
+
+    public void initConsumer() {
         Properties consumerConfig = new Properties();
         consumerConfig.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, UUIDDeserializer.class.getName());
         consumerConfig.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
@@ -43,6 +48,8 @@ public class Consumer {
         //consumerConfig.put(ConsumerConfig.GROUP_INSTANCE_ID_CONFIG, "clientconsumer");
         consumerConfig.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka1:9192, kafka2:9292, kafka3:9392");
 
+        super.initDbConnection();
+        recordCollection = mongoDatabase.getCollection("consumerRecords", Record.class);
         kafkaConsumer = new KafkaConsumer<UUID, String>(consumerConfig);
         kafkaConsumer.subscribe(List.of(Topics.CLIENT_TOPIC));
     }
@@ -102,10 +109,17 @@ public class Consumer {
                             consumer.groupMetadata().memberId()
                     });
                     System.out.println(result);
+                    Record recordMongo = new Record(UUID.randomUUID(), result);
+                    recordCollection.insertOne(recordMongo);
                 }
             }
         } catch (WakeupException we) {
             System.out.println("Job Finished");
         }
+    }
+
+    @Override
+    public void close() throws Exception {
+
     }
 }

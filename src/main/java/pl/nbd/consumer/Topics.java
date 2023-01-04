@@ -15,7 +15,7 @@ import static org.junit.Assert.assertThat;
 
 public class Topics {
     public static final String CONSUMER_GROUP_NAME = "ConsumerGroup";
-    public static final String CLIENT_TOPIC = "Rents";
+    public static final String CLIENT_TOPIC = "rents";
 
     public static void createTopic() throws InterruptedException{
         Properties properties =  new Properties();
